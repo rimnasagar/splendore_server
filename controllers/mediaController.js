@@ -1,5 +1,4 @@
 const Media = require("../models/Media");
-const Ticket = require("../models/Ticket");
 const fs = require("fs");
 const { uuid } = require("uuidv4");
 const { HTTP_STATUS } = require("../constants");
@@ -9,7 +8,7 @@ const path = require("path");
 
 exports.store = async (req, res) => {
     try {
-        const { ticketCode } = req.body;
+        console.log(req.file)
         const url = req.protocol + '://' + req.get('host')
         const { filename, originalname, mimetype , fieldname, size} = req.file;
         const ext = mimetype.split("/");
@@ -17,7 +16,8 @@ exports.store = async (req, res) => {
             name: filename,
             actual_name: originalname,
             type: fieldname,
-            url: `${url}/${fieldname}/${filename}`,
+            url: `${url}/api/v1/media/show`,
+            path: req.file.path,
             extension: ext[1],
             hash: uuid(),
             mime_type: mimetype,
@@ -26,30 +26,26 @@ exports.store = async (req, res) => {
         const media = new Media(file);
         const data = await media.save();
 
-        const ticket = await Ticket.updateOne({code: ticketCode}, {$push: {attachments: data._id }}, {upsert:true});
-        
-        res.status(200).json({ file: ticket });
+        res.status(200).json({ file: data });
         
     } catch(err) {
+        console.log(err);
         res.status(HTTP_STATUS.INTERNAL_SERVER).json(serverError(err));
     }
 };
 
 exports.delete = async (req, res) => {
     try {
-        let { code, id} = req.params;
+        let { id } = req.params;
         const media = await Media.findByIdAndRemove({_id: id});
-        
         await unLinkFile(media.name);
         if(media) {
-            const ticket = await Ticket.updateOne({code}, {$pullAll: {attachments: [{_id: id}] }});
-            if(ticket)
-                res.status(200).json({
-                    status: "success",
-                    error: false,
-                    message: "Successfully deleted",
-                    result: ticket,
-                });
+            res.status(200).json({
+                status: "success",
+                error: false,
+                message: "Successfully deleted",
+                result: {},
+            });
         }
     } catch(err) {
         res.status(HTTP_STATUS.INTERNAL_SERVER).json(serverError(err));
@@ -64,7 +60,7 @@ exports.all = (req, res) => {
                 res.status(200).json({
                     status: "success",
                     error: false,
-                    message: "Successfully deleted",
+                    message: "Successfully fetched",
                     result: item,
                 });
             }
@@ -102,8 +98,8 @@ exports.show = (req, res) => {
     var _id = req.params.id ? req.params.id : null;
     Media.findById(_id)
         .then((item) => {
-            if (fs.existsSync(item.url)) {
-                fs.readFile(item.url, function (err, content) {
+            if (fs.existsSync(item.path)) {
+                fs.readFile(item.path, function (err, content) {
                     if (err) {
                         res.writeHead(400, { 'Content-type': 'text/html' })
                         res.end("No such image");
@@ -115,6 +111,7 @@ exports.show = (req, res) => {
                 });
             } else {
                 console.log("not exisit");
+                res.status(404).send("not found");
             }
         })
         .catch((err) => {

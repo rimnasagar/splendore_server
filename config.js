@@ -17,5 +17,5 @@ module.exports = {
         name: process.env.DB_NAME,
     },
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET || "splendore1226763",
-    STORAGE_DIR: "./attachments"
+    STORAGE_DIR: "./storage"
 };

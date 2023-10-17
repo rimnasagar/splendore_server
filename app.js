@@ -15,6 +15,7 @@ const users = require("./routes/users");
 const product = require("./routes/product");
 const blog = require("./routes/blog");
 const bulkadd = require("./routes/bulkadd");
+const media = require("./routes/media");
 
 const corsoption = [
     {
@@ -56,7 +57,8 @@ app.use("/api/v1/", index);
 app.use("/api/v1/users", CheckToken.auth, users);
 app.use("/api/v1/product", product);
 app.use("/api/v1/blogs", blog);
-app.use("/api/v1/bulkadd", bulkadd)
+app.use("/api/v1/bulkadd", bulkadd);
+app.use("/api/v1/media/", media);
 
   
 server.listen(port, () => {

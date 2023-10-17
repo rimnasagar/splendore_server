@@ -11,7 +11,6 @@ const storage = multer.diskStorage({
         cb(null, STORAGE_DIR);
     },
     filename: (req, file, cb) => {
-        console.log("file ", file)
         const type = file.originalname.split(".");
         const fileName =  `${uuid()}.${type[type.length - 1]}`;
         cb(null, fileName)
@@ -22,14 +21,9 @@ exports.upload = multer({
     storage: storage,
     onError : function(err, next) {
         console.log('error', err);
-        //next(err);
+        next(err);
     },
     fileFilter: (req, file, cb) => {
-        //if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
-            cb(null, true);
-        //} else {
-        //    cb(null, false);
-        //    return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
-        //}
+       cb(null, true);
     }
 });
