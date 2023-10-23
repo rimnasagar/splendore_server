@@ -12,6 +12,10 @@ const productSchema = new Schema(
       type: String,
       default: ""
     },
+    category:{
+          type:String,
+          default:""
+    },
     status: {
       type: String,
       default: USER_STATUS.PENDING
@@ -33,6 +37,10 @@ const productSchema = new Schema(
         ref: "Media",
         default: null,
     },
+    images: [{ 
+      type: Schema.Types.ObjectId,
+      ref: "Media",
+  }],
     created_at: {
       type: Date,
       default: Date.now,

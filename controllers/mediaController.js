@@ -5,13 +5,17 @@ const { HTTP_STATUS } = require("../constants");
 const { serverError } = require("../services/errorHandler");
 const { STORAGE_DIR } = require("../config");
 const path = require("path");
+const Product = require("../models/Product")
 
 exports.store = async (req, res) => {
     try {
-        console.log(req.file)
-        const url = req.protocol + '://' + req.get('host')
-        const { filename, originalname, mimetype , fieldname, size} = req.file;
+        const url = req.protocol + '://' + req.get('host');
+        const { filename, originalname, mimetype, fieldname, size } = req.file;
         const ext = mimetype.split("/");
+        
+        
+        const { productId } = req.params; 
+        
         const file = {
             name: filename,
             actual_name: originalname,
@@ -22,12 +26,19 @@ exports.store = async (req, res) => {
             hash: uuid(),
             mime_type: mimetype,
             size: size,
+            productId, 
         };
+
         const media = new Media(file);
         const data = await media.save();
+        const product = await Product.findById(productId);
+        if (product) {
+            product.images.push(data._id);
+            await product.save();
+        }
+
 
         res.status(200).json({ file: data });
-        
     } catch(err) {
         console.log(err);
         res.status(HTTP_STATUS.INTERNAL_SERVER).json(serverError(err));
@@ -93,6 +104,75 @@ exports.download = (req, res) => {
             res.status(400).send("error in saving");
         });
 };
+// exports.getProductImages = async (req, res) => {
+//     try {
+//         const { productId } = req.params;
+
+//         // Fetch the product by ID
+//         const product = await Product.findById(productId);
+
+//         if (product) {
+//             // Retrieve the image IDs from the product's 'images' array
+//             const imageIds = product.images;
+
+//             // Fetch the actual images from the 'Media' collection by their IDs
+//             const images = await Media.find({ _id: { $in: imageIds } });
+
+//             if (images.length > 0) {
+//                 res.status(200).json({
+//                     status: 'success',
+//                     error: false,
+//                     message: 'Successfully fetched',
+//                     result: images, // Return the array of images
+//                 });
+//             } else {
+//                 res.status(404).json({
+//                     status: 'error',
+//                     error: true,
+//                     message: 'No images found for the product',
+//                     result: null,
+//                 });
+//             }
+//         } else {
+//             res.status(404).json({
+//                 status: 'error',
+//                 error: true,
+//                 message: 'Product not found',
+//                 result: null,
+//             });
+//         }
+//     } catch (err) {
+//         res.status(HTTP_STATUS.INTERNAL_SERVER).json(serverError(err));
+//     }
+// };
+
+// exports.getProductImages = async (req, res) => {
+//     try {
+//         const { productId } = req.params;
+
+       
+//         const product = await Product.findById(productId).populate('images');
+
+//         if (product) {
+//             res.status(200).json({
+//                 status: 'success',
+//                 error: false,
+//                 message: 'Successfully fetched',
+//                 result: product,
+//             });
+//         } else {
+//             res.status(404).json({
+//                 status: 'error',
+//                 error: true,
+//                 message: 'Product not found',
+//                 result: null,
+//             });
+//         }
+//     } catch (err) {
+//         res.status(HTTP_STATUS.INTERNAL_SERVER).json(serverError(err));
+//     }
+// };
+
 
 exports.show = (req, res) => {
     var _id = req.params.id ? req.params.id : null;

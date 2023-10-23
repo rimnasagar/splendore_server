@@ -19,8 +19,8 @@ const { HTTP_STATUS, ROLE } = require("../../constants");
 exports.login = async (req, res) => {
     try {
 
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
         if (!user) {
             res.status(HTTP_STATUS.UN_AUTHERIZED).json({
                 status: "error",

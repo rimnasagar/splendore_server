@@ -41,6 +41,11 @@ var mediaSchema = new Schema(
     deleted_at: {
       type: Date,
     },
+    productId:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+
+    },
   },
   {
     collection: "medias",

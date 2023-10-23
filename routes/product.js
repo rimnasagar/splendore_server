@@ -6,5 +6,6 @@ routes.get('/', ProductController.getAllProducts);
 routes.get('/:id', ProductController.getProduct);
 routes.post('/', ProductController.store);
 routes.delete('/:id', ProductController.delete);
+routes.get('/category', ProductController.getProductsByCategory);
 
 module.exports = routes;

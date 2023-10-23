@@ -5,27 +5,44 @@ const xlsx = require('xlsx');
 const { parse } = require("csv-parse");
 const fs = require("fs");
 
+
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find({});
+      const { category } = req.query;
+      if (category) {
+        const products = await Product.find({ category }).populate('images');
+        console.log(products);
         res.status(HTTP_STATUS.OK).json({
-            status: "success",
-            error: null,
-            message: FETCH_SUCCESS,
-            result: products
+          status: 'success',
+          error: null,
+          message: 'FETCH_SUCCESS',
+          result: products,
         });
+      } else {
+        const products = await Product.find({}).populate('name');
+  
+        res.status(HTTP_STATUS.OK).json({
+          status: 'success',
+          error: null,
+          message: 'FETCH_SUCCESS',
+          result: products,
+        });
+      }
     } catch (err) {
-        res.status(HTTP_STATUS.INTERNAL_SERVER).json({
-            status: "error",
-            error: {
-                status: true,
-                message: SERVER_ERROR,
-            },
-            message: SERVER_ERROR,
-            result: null
-        })
+      console.log(err);
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        status: 'error',
+        error: {
+          status: true,
+          message: 'SERVER_ERROR',
+        },
+        message: 'SERVER_ERROR',
+        result: null,
+      });
     }
-}
+  };
+
+
 
 exports.store = async (req, res) => {
     try {
@@ -120,12 +137,16 @@ exports.storeBulkProducts = async (req, res) => {
         await fs.createReadStream(file.path)
             .pipe(parse({ delimiter: ",", from_line: 2 }))
             .on("data", async (row) => {
-                const [ name, original_price, selling_price, discount ] = row;
+                const [ name,display_name,category,status,code,selling_price,original_price,discount ] = row;
                 if(name !== "") {
                     await new Product({
                         name, 
-                        original_price,
+                        display_name,
+                        category,
+                        status,
+                        code,
                         selling_price,
+                        original_price,
                         discount
                     }).save();
                 }
@@ -163,3 +184,16 @@ exports.storeBulkProducts = async (req, res) => {
         });
     }
 }
+exports.getProductsByCategory = async (req, res) => {
+    try {
+      const { category } = req.query; 
+  
+      
+      const products = await Product.find({ category });
+  
+      res.status(200).json(products);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
